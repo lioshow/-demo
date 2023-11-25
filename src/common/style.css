@@ -1,0 +1,55 @@
+.container {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0px;
+  left: 0px;
+}
+
+.header {
+  background: #1D1B20;
+  color: white;
+  height: 150px !important;
+}
+
+.logo {
+  position: absolute;
+  height: 122px;
+  width: 213px;
+  left: 0;
+}
+
+.title {
+  position: absolute;
+  top: 36px;
+  left: 255px;
+  font-size: 48px;
+  font-style: italic;
+  font-family: '隶书';
+}
+
+.subtitle1 {
+  position: absolute;
+  top: 11px;
+  left: 907px;
+  font-size: 20px;
+}
+
+.subtitle2 {
+  position: absolute;
+  top: 11px;
+  left: 1171px;
+  font-size: 20px;
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.prev-button,
+.next-button,
+.submit-button {
+  margin: 10px 10px;
+}
