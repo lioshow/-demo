@@ -19,11 +19,20 @@
     <el-dialog style="text-align: center;" title="欢迎使用缅北征信平台" :visible.sync="dialogVisible" width="400px">
       <!-- 表单 -->
       <el-form :model="loginForm" ref="loginForm" :rules="loginRules">
-        <el-form-item label="账号" prop="phone">
-          <el-input v-model="loginForm.phone" autocomplete="off"></el-input>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="loginForm.phone" prefix-icon="el-icon-mobile" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="loginForm.password" autocomplete="off"></el-input>
+          <el-input type="password" v-model="loginForm.password" prefix-icon="el-icon-lock" autocomplete="off" show-password></el-input>
+        </el-form-item>
+        <!-- 验证码 -->
+        <el-form-item prop="validCode">
+          <div style="display: flex;align-items: center;">
+            <el-input v-model="loginForm.validCode" prefix-icon="el-icon-circle-check" style="flex: 1" placeholder="请输入验证码"></el-input>
+            <div style="flex: 1;margin-left: 20px;">
+              <valid-code @input="getCode" ref="validCode"/>
+            </div>
+          </div>
         </el-form-item>
       </el-form>
 
@@ -46,22 +55,46 @@
 </template>
 
 <script>
+import { loginUser } from '@/api/index.js'
+import ValidCode from '@/components/ValidCode.vue'
+
 export default {
+  components: {
+    ValidCode
+  },
   data () {
+    // 验证码校验
+    const validateCode = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入验证码'))
+      } else if (value.toLowerCase() !== this.code.toLowerCase()) {
+        callback(new Error('验证码错误'))
+      } else {
+        callback()
+      }
+    }
     return {
       dialogVisible: false,
+      code: '', // 组件传过来的验证码
       loginForm: {
+        validCode: '', // 验证码
         phone: '',
         password: ''
       },
       loginRules: {
-        phone: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+        phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+        validCode: [{ validator: validateCode, trigger: 'blur' }]
       },
       loading: false
     }
   },
   methods: {
+    getCode (code) {
+      this.code = code
+      // console.log(code)
+    },
+
     goMyCredit () {
       this.$router.push({ path: '/myCredit' })
     },
@@ -70,16 +103,67 @@ export default {
       this.$router.push({ path: '/agreement' })
     },
 
+    // 忘记密码
     forgetPassword () {
-      // 处理忘记密码逻辑
+      this.$router.push({ path: '/reset' })
     },
+
+    // 没有账号
     noAccount () {
       this.$router.push({ path: '/register' })
     },
+
+    // 登录
     login () {
-      // 处理登录逻辑，可以在这里提交表单等
-      // 如果表单验证通过，可以关闭弹框：this.dialogVisible = false;
+      this.$refs.loginForm.validate(async (valid) => {
+        if (valid) {
+          this.loading = true
+
+          loginUser(
+            this.loginForm,
+            (res) => {
+              this.loading = false
+              this.$message.success(res.msg)
+              this.$router.push({ path: '/user' })
+            },
+            (res) => {
+              this.loading = false
+              this.$message.error(res.msg)
+              // 刷新验证码
+              this.$refs.validCode.refreshCode()
+            }
+          )
+        }
+      })
     }
+
+    // login () {
+    //   // 处理登录逻辑，可以在这里提交表单等
+    //   // 如果表单验证通过，可以关闭弹框：this.dialogVisible = false;
+    //   this.$refs.loginForm.validate(async (valid) => {
+    //     if (valid) {
+    //       this.loading = true
+    //       setTimeout(() => {
+    //         this.loading = false
+    //       }, 3000)
+    //       // 使用解构语法创建新对象，不包含 validCode 属性
+    //       const { validCode, ...formData } = this.loginForm
+    //       request.post('/user/login', formData).then((res) => {
+    //         this.loading = false
+    //         console.log(res)
+    //         if (res.code === 200) {
+    //           this.$message.success(res.msg)
+    //           localStorage.setItem('user', JSON.stringify(res.data))
+    //           this.$router.push({ path: '/user' })
+    //         } else {
+    //           this.$message.error(res.msg)
+    //           // 刷新验证码
+    //           this.$refs.validCode.refreshCode()
+    //         }
+    //       })
+    //     }
+    //   })
+    // }
   }
 }
 </script>

@@ -15,13 +15,13 @@
       <el-step title="步骤 1" description="请填写您的手机号和密码"></el-step>
       <el-step title="步骤 2" description="上传身份证照片，最多两张"></el-step>
       <el-step title="步骤 3" description="完善信息"></el-step>
-      <el-step title="步骤 4" description="注册成功" :status="currentStep === 4 ? 'success' : ''"></el-step>
+      <el-step title="步骤 4" description="注册结果" :status="currentStep === 4 ? 'success' : (currentStep === 5 ? 'error' : '')"></el-step>
     </el-steps>
 
     <div class="button-container">
       <el-button v-if="currentStep > 1 && currentStep < 4" class="prev-button" @click="prevStep">上一步</el-button>
       <el-button v-if="currentStep < 3" :loading="loading" class="next-button" type="primary" @click="nextStep">下一步</el-button>
-      <el-button v-if="currentStep === 3" :loading="loading" class="next-button" type="primary" @click="finishRegister">完成注册</el-button>
+      <el-button v-if="currentStep === 3" :loading="loading" class="next-button" type="primary" @click="nextStep">完成注册</el-button>
     </div>
     <!-- <component :is="currentStepComponent" @next="nextStep" @prev="prevStep"></component>-->
     <div class="register-container" v-if="currentStep === 1">
@@ -32,11 +32,14 @@
         <el-form-item label="密码" prop="password">
           <el-input type="password" v-model="registerForm.password"></el-input>
         </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input type="text" v-model="registerForm.email"></el-input>
+        </el-form-item>
       </el-form>
     </div>
 
     <div class="register-container" v-if="currentStep === 2" v-loading="loading">
-      <el-upload class="upload-demo" action="http://localhost:8090/api"
+      <el-upload class="upload-demo" action="http://localhost:8090/idCard/ocr"
         :before-upload="beforeUpload"
         :on-success="handleSuccess"
         :on-error="handleError">
@@ -118,16 +121,36 @@
         </template>
       </el-result>
     </div>
+
+    <div class="register-container" v-if="currentStep === 5">
+      <el-result icon="error" title="注册失败" subTitle="点击返回第一步">
+        <template slot="extra">
+          <el-button type="primary" size="medium" @click="currentStep = 1">返回</el-button>
+        </template>
+      </el-result>
+    </div>
   </el-container>
 </template>
 
 <script>
+import { registerUser } from '@/api/index.js'
+import { isEmail } from '@/api/email.js'
+
 export default {
   data () {
+    const validateEmail = (rule, value, callback) => {
+      if (!isEmail(value)) {
+        callback(new Error('邮箱格式错误'))
+      } else {
+        callback()
+      }
+    }
+
     return {
       registerForm: {
         phone: '',
-        password: ''
+        password: '',
+        email: ''
       },
       rules: {
         phone: [
@@ -136,11 +159,16 @@ export default {
         ],
         password: [
           { required: true, message: '密码不可为空', trigger: 'blur' },
+          { min: 6, max: 20, message: '新密码长度为6-20个字符', trigger: 'blur' },
           {
             pattern: /^([a-zA-Z]+[0-9]+[,._!@#$%^&*]+)|([a-zA-Z]+[,._!@#$%^&*]+[0-9]+)|([0-9]+[,._!@#$%^&*]+[a-zA-Z]+)|([0-9]+[a-zA-Z]+[,._!@#$%^&*]+)|([,._!@#$%^&*]+[a-zA-Z]+[0-9]+)|([,._!@#$%^&*]+[0-9]+[a-zA-Z]+)$/,
             message: '密码必须包含数字，字母和特殊符号',
             trigger: 'blur'
           }
+        ],
+        email: [
+          { required: true, message: '邮箱地址不可为空', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
         ]
       },
       currentStep: 1,
@@ -214,8 +242,7 @@ export default {
           if (educationValid) {
             this.$refs.employmentForm.validate(async (employmentValid) => {
               if (employmentValid) {
-                this.loading = false
-                this.currentStep += 1
+                this.finishRegister()
               }
             })
           }
@@ -292,6 +319,7 @@ export default {
     handleError (error) {
       // 上传失败的回调
       this.$message.error(error)
+      this.reUpload()
     },
 
     // 重新上传
@@ -299,6 +327,8 @@ export default {
       this.uploadData.face = null
       this.uploadData.back = null
       this.imageArray = []
+      this.faceCount = 0
+      this.backCount = 0
     },
 
     // 完成注册
@@ -308,11 +338,66 @@ export default {
         cancelButtonText: '取消',
         type: 'info'
       }).then(() => {
-        this.currentStep += 1
+        this.loading = true
+        setTimeout(() => {
+          this.loading = false
+        }, 2000)
+
+        const registerData = {
+          registerForm: this.registerForm,
+          uploadData: this.uploadData,
+          education: this.education,
+          employment: this.employment
+        }
+
+        registerUser(
+          registerData,
+          (res) => {
+            this.loading = false
+            this.currentStep += 1
+          },
+          (res) => {
+            this.loading = false
+            this.$message.error(res.msg)
+            this.currentStep += 2
+          }
+        )
       }).catch(() => {
         this.$message.info('操作取消')
       })
     },
+
+    // // 完成注册
+    // finishRegister () {
+    //   this.$confirm('确认注册吗', '提示', {
+    //     confirmButtonText: '确定',
+    //     cancelButtonText: '取消',
+    //     type: 'info'
+    //   }).then(() => {
+    //     this.loading = true
+    //     setTimeout(() => {
+    //       this.loading = false
+    //     }, 2000)
+    //     const request = {
+    //       registerForm: this.registerForm,
+    //       uploadData: this.uploadData,
+    //       education: this.education,
+    //       employment: this.employment
+    //     }
+    //     axios.post('http://localhost:8090/user/register', request).then((response) => {
+    //       // console.log(response)
+    //       this.loading = false
+    //       if (response.data.code) {
+    //         this.currentStep += 1
+    //       } else {
+    //         this.$message.error(response.data.msg)
+    //         this.currentStep += 2
+    //       }
+    //     })
+    //   }).catch(() => {
+    //     this.$message.info('操作取消')
+    //   })
+    // },
 
     showTip () {
       this.$confirm('跳过此步骤将可能影响到信用分评估，确定要跳过吗', '警告', {
@@ -321,7 +406,6 @@ export default {
         type: 'warning'
       }).then(() => {
         this.finishRegister()
-        this.currentStep += 1
       }).catch(() => {
         this.$message.info('操作取消')
       })
@@ -331,8 +415,10 @@ export default {
 </script>
 
 <style lang="less" scoped>
+@import '@/common/style.css';
   .el-steps {
-    margin: 50px;
+    width: 80%;
+    margin: 50px auto;
   }
 
   .el-form {
