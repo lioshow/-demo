@@ -14,7 +14,7 @@
     <el-steps :active="currentStep - 1" finish-status="success" space="400px" align-center>
       <el-step title="步骤 1" description="验证账户"></el-step>
       <el-step title="步骤 2" description="重置密码"></el-step>
-      <el-step title="步骤 3" description="重置结果结果" :status="currentStep === 3 ? 'success' : (currentStep === 4 ? 'error' : '')"></el-step>
+      <el-step title="步骤 3" description="重置结果" :status="currentStep === 3 ? 'success' : (currentStep === 4 ? 'error' : '')"></el-step>
     </el-steps>
 
     <div class="button-container">
@@ -39,11 +39,19 @@
 
     <div class="register-container" v-if="currentStep === 2">
       <el-form :model="passwordForm" ref="passwordForm" :rules="passwordFormRules" label-width="80px">
-        <el-form-item label="原密码" prop="oldPassword">
-          <el-input v-model="passwordForm.oldPassword"></el-input>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="passwordForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="验证码" prop="validCode">
+          <div style="display: flex;align-items: center;">
+            <el-input v-model="passwordForm.validCode" style="flex: 2; margin-right: 10px;"></el-input>
+            <el-button v-loading="loading" style="flex: 1;" @click="getEmailCode" :disabled="time > 0">
+              {{ time > 0 ? `${time} 秒后重新获取` : '获取' }}
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
-          <el-input v-model="passwordForm.newPassword"></el-input>
+          <el-input type="password" v-model="passwordForm.newPassword"></el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -68,20 +76,30 @@
 
 <script>
 import axios from 'axios'
+import { isEmail } from '@/api/email.js'
 export default {
   data () {
+    const validateEmail = (rule, value, callback) => {
+      if (!isEmail(value)) {
+        callback(new Error('邮箱格式错误'))
+      } else {
+        callback()
+      }
+    }
     return {
-      currentStep: 1,
+      currentStep: 2,
       resetForm: {
         name: '',
         idNo: '',
         phone: ''
       },
       passwordForm: {
-        oldPassword: '',
+        email: '',
+        validCode: '',
         newPassword: ''
       },
       loading: false,
+      time: 0,
       resetFormRules: {
         phone: [
           { required: true, message: '手机号不可为空', trigger: 'blur' },
@@ -96,9 +114,6 @@ export default {
         ]
       },
       passwordFormRules: {
-        oldPassword: [
-          { required: true, message: '原密码不可为空', trigger: 'blur' }
-        ],
         newPassword: [
           { required: true, message: '新密码不可为空', trigger: 'blur' },
           { min: 6, max: 20, message: '新密码长度为6-20个字符', trigger: 'blur' },
@@ -108,6 +123,13 @@ export default {
             trigger: 'blur'
           },
           { validator: this.validatePassword, trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '邮箱地址不可为空', trigger: 'blur' },
+          { validator: validateEmail, trigger: 'blur' }
+        ],
+        validCode: [
+          { required: true, message: '验证码不可为空', trigger: 'blur' }
         ]
       }
     }
@@ -132,6 +154,28 @@ export default {
 
     prevStep () {
       this.currentStep -= 1
+    },
+
+    // 获取邮箱验证码
+    async getEmailCode () {
+      this.$refs.passwordForm.validateField('email', async (valid) => {
+        if (!valid) { return }
+        // 模拟发送验证码的操作，实际中需要调用发送验证码的接口
+        setTimeout(() => {
+          this.$message.success('验证码已发送，注意查收')
+          // 倒计时开始
+          this.time = 60
+          // 启动定时器，每秒减少一秒
+          const timer = setInterval(() => {
+            if (this.time > 0) {
+              this.time--
+            } else {
+              // 倒计时结束，清除定时器
+              clearInterval(timer)
+            }
+          }, 1000)
+        }, 1000)
+      })
     },
 
     nextStep () {

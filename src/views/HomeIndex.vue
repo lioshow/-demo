@@ -57,10 +57,16 @@
 <script>
 import { loginUser } from '@/api/index.js'
 import ValidCode from '@/components/ValidCode.vue'
+import { mapState, mapMutations } from 'vuex'
 
 export default {
   components: {
     ValidCode
+  },
+  computed: {
+    ...mapState('userLoggedState', {
+      isUserLoggedIn: state => state.isUserLoggedIn
+    })
   },
   data () {
     // 验证码校验
@@ -90,6 +96,8 @@ export default {
     }
   },
   methods: {
+    ...mapMutations('userLoggedState', ['setUserLoggedState']),
+
     getCode (code) {
       this.code = code
       // console.log(code)
@@ -124,6 +132,8 @@ export default {
             (res) => {
               this.loading = false
               this.$message.success(res.msg)
+              this.$store.commit('user/setUserInfo', res.data)
+              this.setUserLoggedState(true)
               this.$router.push({ path: '/user' })
             },
             (res) => {

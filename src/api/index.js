@@ -19,7 +19,7 @@ export const loginUser = async (loginForm, successCallback, errorCallback) => {
   } catch (error) {
     // 处理异常
     console.error('-_-!啊哦，登录时出现意外:', error)
-    errorCallback({ code: 500, msg: 'Internal Server Error' })
+    errorCallback({ code: 500, msg: '-_-!啊哦，登录时出现意外' })
   }
 }
 
@@ -36,6 +36,22 @@ export const registerUser = async (registerData, successCallback, errorCallback)
   } catch (error) {
     // 处理异常
     console.error('-_-!啊哦，注册时出现意外:', error)
-    errorCallback({ code: 500, msg: 'Internal Server Error' })
+    errorCallback({ code: 500, msg: '-_-!啊哦，注册时出现意外' })
+  }
+}
+
+export const sendEmailCode = async (email, successCallback, errorCallback) => {
+  try {
+    const response = await request.get('/user/sendEmailCode', email)
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，发送邮件时出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，发送邮件时出现意外' })
   }
 }

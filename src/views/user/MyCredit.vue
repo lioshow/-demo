@@ -15,8 +15,10 @@
       <el-aside width="500px" class="left">
         <el-row>
           <el-col :span="24" class="left-col">
-            <el-avatar :size="80" style="font-size: 60px;" icon="el-icon-user-solid"></el-avatar>
-            <el-button class="left-button" type="primary" @click="dialogVisible = true">登录</el-button>
+            <el-avatar v-if="!isUserLoggedIn" :size="80" style="font-size: 60px;" icon="el-icon-user-solid"></el-avatar>
+            <p v-else>欢迎您，刘肖</p>
+            <el-button v-if="!isUserLoggedIn" class="left-button" type="primary" @click="dialogVisible = true">登录</el-button>
+            <el-button v-else class="left-button" type="primary" @click="logout">退出</el-button>
           </el-col>
           <el-col :span="24">
             <div ref="radarChart" class="radar-container"></div>
@@ -28,7 +30,12 @@
       <el-main class="right">
         <el-row style="height: 100%;">
           <el-col :span="12">
-            <el-button type="primary" @click="dialogVisible = true"><i class="el-icon-chat-dot-square"></i>请登录查看信用详情</el-button>
+            <el-button v-if="!isUserLoggedIn" type="primary" @click="dialogVisible = true"><i class="el-icon-chat-dot-square"></i>请登录查看信用详情</el-button>
+            <div v-else>
+              <i class="el-icon-chat-dot-square"></i>
+              当前信用分为：910，信用水平：
+              <span :style="{ color: getFontColor('优秀') }">优秀</span>
+            </div>
           </el-col>
           <el-col :span="24">
             <!-- 折线图容器 -->
@@ -81,9 +88,18 @@
 import * as echarts from 'echarts'
 import { loginUser } from '@/api/index.js'
 import ValidCode from '@/components/ValidCode.vue'
+
+import { mapState, mapMutations } from 'vuex'
+import { getInfo, removeInfo, removeLevel, removeState } from '@/utils/storage'
+
 export default {
   components: {
     ValidCode
+  },
+  computed: {
+    ...mapState('userLoggedState', {
+      isUserLoggedIn: state => state.isUserLoggedIn
+    })
   },
   data () {
     // 验证码校验
@@ -97,6 +113,7 @@ export default {
       }
     }
     return {
+      user: '',
       radarData: [],
       recentDates: [],
       dialogVisible: false,
@@ -116,6 +133,7 @@ export default {
   },
   created () {
     this.getRecentDates()
+    if (this.isUserLoggedIn) this.getUserInfo()
   },
   mounted () {
     // 在组件挂载后，初始化雷达图和折线图
@@ -123,6 +141,13 @@ export default {
     this.initLineChart()
   },
   methods: {
+    ...mapMutations('userLoggedState', ['setUserLoggedState']),
+
+    getUserInfo () {
+      if (this.isUserLoggedIn) this.user = JSON.parse(getInfo())
+      // console.log(this.user)
+    },
+
     initRadarChart () {
       // 获取图表容器
       const chartContainer = this.$refs.radarChart
@@ -212,7 +237,8 @@ export default {
     },
 
     goHome () {
-      this.$router.push({ path: '/' })
+      if (this.isUserLoggedIn) this.$router.push({ path: '/user' })
+      else this.$router.push({ path: '/' })
     },
 
     getRecentDates () {
@@ -252,7 +278,9 @@ export default {
             (res) => {
               this.loading = false
               this.$message.success(res.msg)
-              this.$router.push({ path: '/user' })
+              this.$store.commit('user/setUserInfo', res.data)
+              this.setUserLoggedState(true)
+              location.reload()
             },
             (res) => {
               this.loading = false
@@ -263,6 +291,35 @@ export default {
           )
         }
       })
+    },
+
+    // 登出
+    logout () {
+      this.$confirm('确定退出登录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message.success('退出成功')
+        removeInfo()
+        removeLevel()
+        removeState()
+        this.$router.replace({ path: '/' })
+      }).catch(() => {
+        this.$message.info('操作取消')
+      })
+    },
+
+    getFontColor (level) {
+      if (level === '优秀') {
+        return 'green'
+      } else if (level === '良好') {
+        return 'blue'
+      } else if (level === '一般') {
+        return 'orange'
+      } else {
+        return 'red'
+      }
     }
   }
 }
