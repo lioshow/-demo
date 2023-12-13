@@ -29,12 +29,15 @@
       <!-- 右侧布局 -->
       <el-main class="right">
         <el-row style="height: 100%;">
-          <el-col :span="12">
+          <el-col :span="24">
             <el-button v-if="!isUserLoggedIn" type="primary" @click="dialogVisible = true"><i class="el-icon-chat-dot-square"></i>请登录查看信用详情</el-button>
-            <div v-else>
-              <i class="el-icon-chat-dot-square"></i>
-              当前信用分为：910，信用水平：
-              <span :style="{ color: getFontColor('优秀') }">优秀</span>
+            <div v-else style="display: flex;">
+              <div>
+                <i class="el-icon-chat-dot-square"></i>
+                当前信用分为：910，信用水平：
+                <span :style="{ color: getFontColor('优秀') }">优秀</span>
+              </div>
+              <el-button style="margin-left: 50px;" type="success">生成信用报告</el-button>
             </div>
           </el-col>
           <el-col :span="24">
@@ -86,7 +89,7 @@
 
 <script>
 import * as echarts from 'echarts'
-import { loginUser } from '@/api/index.js'
+import { getMetrics, getUser, loginUser } from '@/api/index.js'
 import ValidCode from '@/components/ValidCode.vue'
 
 import { mapState, mapMutations } from 'vuex'
@@ -113,6 +116,7 @@ export default {
       }
     }
     return {
+      info: '',
       user: '',
       radarData: [],
       recentDates: [],
@@ -133,19 +137,64 @@ export default {
   },
   created () {
     this.getRecentDates()
-    if (this.isUserLoggedIn) this.getUserInfo()
+    if (this.isUserLoggedIn) {
+      this.info = getInfo()
+      this.getUserInfo()
+    }
   },
   mounted () {
     // 在组件挂载后，初始化雷达图和折线图
-    this.initRadarChart()
-    this.initLineChart()
+    if (!this.isUserLoggedIn) {
+      this.initRadarChart()
+      this.initLineChart()
+    }
   },
   methods: {
     ...mapMutations('userLoggedState', ['setUserLoggedState']),
 
     getUserInfo () {
-      if (this.isUserLoggedIn) this.user = JSON.parse(getInfo())
-      // console.log(this.user)
+      const info = JSON.parse(this.info)
+
+      getUser(
+        info,
+        (res) => {
+          this.user = res.data
+          getMetrics(
+            this.user,
+            (res) => {
+              // console.log(res)
+              const { id, idNo, score, ...radarData } = res.data
+              // const radarArray = Object.keys(radarData).map(key => radarData[key])
+              this.radarData = radarData
+              // 定义键的中英文映射关系
+              const keyMapping = {
+                ability: '履约能力',
+                account: '账号信息',
+                activity: '平台活跃',
+                behavior: '行为特质',
+                user: '用户特质'
+              }
+
+              // 将英文键映射为中文
+              for (const englishKey in this.radarData) {
+                if (Object.prototype.hasOwnProperty.call(this.radarData, englishKey) && keyMapping[englishKey]) {
+                  this.radarData[keyMapping[englishKey]] = this.radarData[englishKey]
+                  delete this.radarData[englishKey]
+                }
+              }
+              console.log(this.radarData)
+              this.initRadarChart()
+              this.initLineChart()
+            },
+            (res) => {
+              this.$message.error(res.msg)
+            }
+          )
+        },
+        (res) => {
+          this.$message.error(res.msg)
+        }
+      )
     },
 
     initRadarChart () {
@@ -164,31 +213,42 @@ export default {
         // },
         radar: {
           // 雷达图的指示器，根据需要设置
-          indicator: [
-            { name: '平台活跃', max: 200 },
-            { name: '账号信息', max: 200 },
-            { name: '履约能力', max: 200 },
-            { name: '用户特质', max: 200 },
-            { name: '行为特质', max: 200 }
-          ]
+          // indicator: [
+          //   { name: '平台活跃', max: 200 },
+          //   { name: '账号信息', max: 200 },
+          //   { name: '履约能力', max: 200 },
+          //   { name: '用户特质', max: 200 },
+          //   { name: '行为特质', max: 200 }
+          // ]
+          indicator: Object.keys(this.radarData).map(key => ({ name: key, max: 200 }))
         },
         series: [
           {
             name: '雷达图',
             type: 'radar',
-            // areaStyle: {
-            //   opacity: 0 // 将透明度设置为0，隐藏实心区域
-
-            // },
-            // // 不显示雷达线
-            // lineStyle: {
-            //   opacity: 0 // 将透明度设置为0，隐藏雷达线
-
-            // },
+            areaStyle: {
+              color: '#55e195',
+              opacity: 0.8 // 将透明度设置为0，隐藏实心区域
+            },
+            // 不显示雷达线
+            lineStyle: {
+              // color: 'green',
+              opacity: 0 // 将透明度设置为0，隐藏雷达线
+            },
+            axisPointer: {
+              type: 'cross', // 设置为'cross'类型，显示在雷达图中心
+              label: {
+                show: true
+              }
+            },
             // // 不显示数据点
             symbol: 'none', // 设置数据点不显示
             // 数据
-            data: this.radarData
+            data: [
+              {
+                value: Object.values(this.radarData)
+              }
+            ]
           }
         ]
       }
@@ -224,7 +284,7 @@ export default {
         series: [{
           name: '示例数据',
           type: 'line',
-          data: []
+          data: [910, 910, 910, 910, 910, 910, 910]
         }]
       }
       // 使用配置项绘制折线图
@@ -301,6 +361,7 @@ export default {
         type: 'warning'
       }).then(() => {
         this.$message.success('退出成功')
+        this.setUserLoggedState(false)
         removeInfo()
         removeLevel()
         removeState()

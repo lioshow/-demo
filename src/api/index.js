@@ -11,7 +11,6 @@ export const loginUser = async (loginForm, successCallback, errorCallback) => {
     const response = await request.post('/user/login', formData)
 
     if (response.code === 200) {
-      localStorage.setItem('user', JSON.stringify(response.data))
       successCallback(response)
     } else {
       errorCallback(response)
@@ -53,5 +52,85 @@ export const sendEmailCode = async (email, successCallback, errorCallback) => {
     // 处理异常
     console.error('-_-!啊哦，发送邮件时出现意外:', error)
     errorCallback({ code: 500, msg: '-_-!啊哦，发送邮件时出现意外' })
+  }
+}
+
+export const getUser = async (info, successCallback, errorCallback) => {
+  try {
+    const response = await request.get('/user/getUser', { params: { phone: info.phone } })
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}
+
+export const getMetrics = async (user, successCallback, errorCallback) => {
+  try {
+    const response = await request.get('/metrics/getMetrics', { params: { idNo: user.idcard.idNo } })
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}
+
+export const updateUser = async (user, successCallback, errorCallback) => {
+  try {
+    const response = await request.put('/user/update', user)
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}
+
+export const updateEducation = async (education, successCallback, errorCallback) => {
+  try {
+    const response = await request.put('/education/update', education)
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}
+
+export const updateEmployment = async (employment, successCallback, errorCallback) => {
+  try {
+    const response = await request.put('/employment/update', employment)
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
   }
 }
