@@ -1,0 +1,59 @@
+
+#自定义图片上传位置
+file-save-path: D:/IDEAProjects/images/
+
+server:
+  port: 8090
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3305/credit?serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  #更改文件上传大小限制
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  #邮箱基本配置
+  mail:
+    #配置smtp服务主机地址
+    # qq邮箱为smtp.qq.com          端口号465或587
+    # sina    smtp.sina.cn
+    # aliyun  smtp.aliyun.com
+    # 163     smtp.163.com       端口号465或994
+    host: smtp.126.com
+    #发送者邮箱
+    username:
+    #配置密码,注意不是真正的密码，而是刚刚申请到的授权码
+    password:
+    #端口号465或587
+    port: 25
+    #默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    #其他参数
+    properties:
+      mail:
+        #配置SSL 加密工厂
+        smtp:
+          ssl:
+            #本地测试，先放开ssl
+            enable: false
+            required: false
+          #开启debug模式，这样邮件发送过程的日志会在控制台打印出来，方便排查错误
+        debug: true
+
+#开启mybatis-plus运行日志
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+swagger:
+  basic:
+    enable: true 	// 启用
+    username:
+    password:
