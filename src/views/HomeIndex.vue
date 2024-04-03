@@ -16,7 +16,7 @@
     </el-container>
 
     <!-- 登录弹框 -->
-    <el-dialog style="text-align: center;" title="欢迎使用缅北征信平台" :visible.sync="dialogVisible" width="400px">
+    <el-dialog style="text-align: center;" title="欢迎使用缅北征信平台" :visible.sync="dialogVisible" :close-on-click-modal="false" width="400px">
       <!-- 表单 -->
       <el-form :model="loginForm" ref="loginForm" :rules="loginRules">
         <el-form-item label="手机号" prop="phone">
@@ -49,6 +49,13 @@
       <div class="login-agreement">
         注意：登录即代表您同意使用我们的服务，且自愿服从相关条例。详细说明请看
         <el-button style="font-size: 12px;" type="text" @click="goLoginAgreement">《缅北征信服务平台协议》</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog :visible.sync="assessmentVisible" title="正在为您进行信用评估，请勿离开..." :show-close="false" :close-on-click-modal="false">
+      <el-progress :percentage="progress"></el-progress>
+      <div class="access-button" align="center">
+        <el-button type="success" :disabled="progress==100 ? false : true" @click="goUser">评估完成，进入主页</el-button>
       </div>
     </el-dialog>
   </el-container>
@@ -92,8 +99,13 @@ export default {
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
         validCode: [{ validator: validateCode, trigger: 'blur' }]
       },
-      loading: false
+      loading: false,
+      assessmentVisible: false,
+      progress: 0
     }
+  },
+  created () {
+    // this.creditAssessment()
   },
   methods: {
     ...mapMutations('userLoggedState', ['setUserLoggedState']),
@@ -131,10 +143,16 @@ export default {
             this.loginForm,
             (res) => {
               this.loading = false
-              this.$message.success(res.msg)
               this.$store.commit('user/setUserInfo', res.data)
               this.setUserLoggedState(true)
-              this.$router.push({ path: '/user' })
+              // console.log(res.data)
+
+              if (res.data.days === 1) {
+                this.dialogVisible = false
+                this.creditAssessment()
+              } else {
+                this.goUser()
+              }
             },
             (res) => {
               this.loading = false
@@ -145,6 +163,22 @@ export default {
           )
         }
       })
+    },
+
+    creditAssessment () {
+      this.assessmentVisible = true
+      // 模拟加载过程，每100毫秒增加1%的进度
+      const interval = setInterval(() => {
+        this.progress += 1
+        if (this.progress >= 100) {
+          clearInterval(interval)
+        }
+      }, 100)
+    },
+
+    goUser () {
+      this.$message.success('登录成功')
+      this.$router.push({ path: '/user' })
     }
 
     // login () {
@@ -218,5 +252,10 @@ export default {
     margin-top: 10px;
     font-size: 12px;
     color: #999;
+  }
+
+  .access-button {
+    margin: 50px auto;
+    align-items: center;
   }
 </style>

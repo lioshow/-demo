@@ -6,6 +6,7 @@ import LoginAgreement from '@/views/LoginAgreement'
 import RegisterIndex from '@/views/register/RegisterIndex'
 import ResetPassword from '@/views/reset/ResetPassword'
 import UserIndex from '@/views/user/UserIndex'
+import CreditReport from '@/views/user/CreditReport'
 
 Vue.use(VueRouter)
 
@@ -15,7 +16,8 @@ const routes = [
   { path: '/agreement', name: 'agreement', component: LoginAgreement },
   { path: '/register', name: 'register', component: RegisterIndex },
   { path: '/reset', name: 'reset', component: ResetPassword },
-  { path: '/user', name: 'user', component: UserIndex }
+  { path: '/user', name: 'user', component: UserIndex },
+  { path: '/report', name: 'report', component: CreditReport }
 ]
 
 const router = new VueRouter({

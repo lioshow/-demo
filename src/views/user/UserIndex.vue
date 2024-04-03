@@ -1,20 +1,37 @@
 <template>
   <el-container class="container">
     <el-header class="header">
-      <img src="@/assets/logo.jpg" alt="" class="logo">
+      <img
+        src="@/assets/logo.jpg"
+        alt=""
+        class="logo"
+      >
       <div class="title">缅北征信中心</div>
       <div class="subtitle1">
         <el-button type="text">首页</el-button>
       </div>
       <div class="subtitle2">
-        <el-button style="color: #fff;" type="text" @click="goMyCredit">我的信用</el-button>
+        <el-button
+          style="color: #fff;"
+          type="text"
+          @click="goMyCredit"
+        >我的信用</el-button>
       </div>
     </el-header>
 
     <el-container style="display: flex;">
-      <el-descriptions class="personalInfo" title="个人信息（仅展示部分）" :column="3" border>
+      <el-descriptions
+        class="personalInfo"
+        title="个人信息（仅展示部分）"
+        :column="3"
+        border
+      >
         <template slot="extra">
-          <el-button type="primary" size="small" @click="dialogVisible = true">编辑</el-button>
+          <el-button
+            type="primary"
+            size="small"
+            @click="dialogVisible = true"
+          >编辑</el-button>
         </template>
         <el-descriptions-item>
           <template slot="label">
@@ -66,34 +83,75 @@
           {{ idcard.address }}
         </el-descriptions-item>
       </el-descriptions>
-      <div ref="ringGaugeChart" class="ringGauge-container"></div>
+      <div
+        ref="ringGaugeChart"
+        class="ringGauge-container"
+      ></div>
     </el-container>
 
     <!-- 主弹框 -->
-    <el-dialog :visible.sync="dialogVisible" title="编辑信息" :append-to-body="true">
+    <el-dialog
+      :visible.sync="dialogVisible"
+      title="编辑信息"
+      :append-to-body="true"
+    >
       <!-- el-tabs 区域 -->
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="个人信息" name="user">
+        <el-tab-pane
+          label="个人信息"
+          name="user"
+        >
           <!-- 个人信息表单 -->
-          <el-form :model="user" label-width="80px"  ref="personalForm" :rules="rules">
-            <el-form label-width="80px" disabled>
-              <el-form-item label="手机号" prop="phone">
+          <el-form
+            :model="user"
+            label-width="80px"
+            ref="personalForm"
+            :rules="rules"
+          >
+            <el-form
+              label-width="80px"
+              disabled
+            >
+              <el-form-item
+                label="手机号"
+                prop="phone"
+              >
                 <el-input v-model="user.phone"></el-input>
               </el-form-item>
             </el-form>
-            <el-form-item label="密码" prop="password">
-              <el-input type="password" v-model="user.password" show-password></el-input>
+            <el-form-item
+              label="密码"
+              prop="password"
+            >
+              <el-input
+                type="password"
+                v-model="user.password"
+                show-password
+              ></el-input>
             </el-form-item>
-            <el-form-item label="邮箱" prop="password">
+            <el-form-item
+              label="邮箱"
+              prop="email"
+            >
               <el-input v-model="user.email"></el-input>
             </el-form-item>
           </el-form>
         </el-tab-pane>
 
-        <el-tab-pane label="实名信息" name="idcard">
+        <el-tab-pane
+          label="实名信息"
+          name="idcard"
+        >
           <!-- 实名信息表单 -->
-          <div v-if="!idcardModify" style="display: flex; flex-direction: column; justify-content: center;">
-            <el-form :model="idcard" label-width="80px" disabled>
+          <div
+            v-if="!idcardModify"
+            style="display: flex; flex-direction: column; justify-content: center;"
+          >
+            <el-form
+              :model="idcard"
+              label-width="80px"
+              disabled
+            >
               <el-form-item label="姓名">
                 <el-input v-model="idcard.name"></el-input>
               </el-form-item>
@@ -114,92 +172,238 @@
               </el-form-item>
             </el-form>
             <div style="margin: 20px auto;">
-              <el-button type="primary" @click="reUpload">重新上传</el-button>
+              <el-button
+                type="primary"
+                @click="reUpload"
+              >重新上传</el-button>
             </div>
           </div>
-          <div v-else style="display: flex; flex-direction: column; justify-content: center;">
+          <div
+            v-else
+            style="display: flex; flex-direction: column; justify-content: center;"
+          >
             <!-- <el-dialog :visible.sync="uploadDialogVisible" title="上传信息" :append-to-body="true" @before-close="uploadDialogClose"> -->
-              <el-upload class="upload-demo" action="http://localhost:8090/idCard/ocr"
-                :before-upload="beforeUpload"
-                :on-success="handleSuccess"
-                :on-error="handleError">
-                <el-button size="medium" type="primary">点击上传</el-button>
-              </el-upload>
+            <el-upload
+              class="upload-demo"
+              action="http://localhost:8090/idCard/ocr"
+              :before-upload="beforeUpload"
+              :on-success="handleSuccess"
+              :on-error="handleError"
+            >
+              <el-button
+                size="medium"
+                type="primary"
+              >点击上传</el-button>
+            </el-upload>
 
-              <div class="image">
-                <div v-for="(image, index) in imageArray" :key="index" class="uploaded-image-container">
-                  <img :src="image.url" alt="" style="width: 100px; height: 100px;">
-                </div>
+            <div class="image">
+              <div
+                v-for="(image, index) in imageArray"
+                :key="index"
+                class="uploaded-image-container"
+              >
+                <img
+                  :src="image.url"
+                  alt=""
+                  style="width: 100px; height: 100px;"
+                >
               </div>
+            </div>
 
-              <div slot="footer" class="dialog-footer">
-                <el-button v-if="imageArray.length > 0"  @click="reUpload">重新上传</el-button>
-                <el-button v-if="imageArray.length > 0"  @click="confirmUpload" type="success">确定</el-button>
-              </div>
+            <div
+              slot="footer"
+              class="dialog-footer"
+            >
+              <el-button
+                v-if="imageArray.length > 0"
+                @click="reUpload"
+              >重新上传</el-button>
+              <el-button
+                v-if="imageArray.length > 0"
+                @click="confirmUpload"
+                type="success"
+              >确定</el-button>
+            </div>
             <!-- </el-dialog> -->
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="就业情况" name="employment">
-          <el-form ref="employmentForm" label-width="100px" :model="employment" :rules="employmentRules">
-            <el-form-item label="就业状况" prop="status">
-              <el-select v-model="employment.status" placeholder="请选择就业状况">
+        <el-tab-pane
+          label="就业情况"
+          name="employment"
+        >
+          <el-form
+            ref="employmentForm"
+            label-width="100px"
+            :model="employment"
+            :rules="employmentRules"
+          >
+            <el-form-item
+              label="就业状况"
+              prop="status"
+            >
+              <el-select
+                v-model="employment.status"
+                placeholder="请选择就业状况"
+              >
                 <!-- 就业状况选项 -->
-                <el-option label="在职" value="在职"></el-option>
-                <el-option label="待业" value="待业"></el-option>
+                <el-option
+                  label="在职"
+                  value="在职"
+                ></el-option>
+                <el-option
+                  label="待业"
+                  value="待业"
+                ></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="职业类别" prop="type" v-if="employment.status === '在职'">
-              <el-select v-model="employment.type" placeholder="请选择职位">
+            <el-form-item
+              label="职业类别"
+              prop="type"
+              v-if="employment.status === '在职'"
+            >
+              <el-select
+                v-model="employment.type"
+                placeholder="请选择职位"
+              >
                 <!-- 职业类别选项 -->
-                <el-option label="党的机关、国家机关、群众团体和社会组织、企事业单位负责人"
-                            value="党的机关、国家机关、群众团体和社会组织、企事业单位负责人"></el-option>
-                <el-option label="专业技术人员" value="专业技术人员"></el-option>
-                <el-option label="办事人员和有关人员" value="办事人员和有关人员"></el-option>
-                <el-option label="社会生产服务和生活服务人员" value="社会生产服务和生活服务人员"></el-option>
-                <el-option label="农、林、牧、渔业生产及辅助人员" value="农、林、牧、渔业生产及辅助人员"></el-option>
-                <el-option label="生产制造及有关人员" value="生产制造及有关人员"></el-option>
-                <el-option label="军人" value="军人"></el-option>
-                <el-option label="学生" value="学生"></el-option>
-                <el-option label="退休/无业" value="退休/无业"></el-option>
-                <el-option label="不便分类的其他从业人员" value="不便分类的其他从业人"></el-option>
+                <el-option
+                  label="党的机关、国家机关、群众团体和社会组织、企事业单位负责人"
+                  value="党的机关、国家机关、群众团体和社会组织、企事业单位负责人"
+                ></el-option>
+                <el-option
+                  label="专业技术人员"
+                  value="专业技术人员"
+                ></el-option>
+                <el-option
+                  label="办事人员和有关人员"
+                  value="办事人员和有关人员"
+                ></el-option>
+                <el-option
+                  label="社会生产服务和生活服务人员"
+                  value="社会生产服务和生活服务人员"
+                ></el-option>
+                <el-option
+                  label="农、林、牧、渔业生产及辅助人员"
+                  value="农、林、牧、渔业生产及辅助人员"
+                ></el-option>
+                <el-option
+                  label="生产制造及有关人员"
+                  value="生产制造及有关人员"
+                ></el-option>
+                <el-option
+                  label="军人"
+                  value="军人"
+                ></el-option>
+                <el-option
+                  label="学生"
+                  value="学生"
+                ></el-option>
+                <el-option
+                  label="退休/无业"
+                  value="退休/无业"
+                ></el-option>
+                <el-option
+                  label="不便分类的其他从业人员"
+                  value="不便分类的其他从业人"
+                ></el-option>
               </el-select>
             </el-form-item>
           </el-form>
         </el-tab-pane>
-        <el-tab-pane label="教育情况" name="education">
-          <el-form ref="educationForm" label-width="100px" :model="education" :rules="educationRules">
-              <el-form-item label="学历" prop="degree">
-                <el-select v-model="education.degree" placeholder="请选择学历">
-                  <!-- 学历选项 -->
-                  <el-option label="小学" value="小学"></el-option>
-                  <el-option label="初中" value="初中"></el-option>
-                  <el-option label="高中" value="高中"></el-option>
-                  <el-option label="大专" value="大专"></el-option>
-                  <el-option label="本科" value="本科"></el-option>
-                  <el-option label="研究生" value="研究生"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="学位" prop="title" v-if="education.degree === '本科' || education.degree === '研究生'">
-                <el-select v-model="education.title" placeholder="请选择学位">
-                  <!-- 学位选项 -->
-                  <el-option label="学士" value="学士"></el-option>
-                  <el-option label="硕士" value="硕士"></el-option>
-                  <el-option label="博士" value="博士"></el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="毕业院校" prop="school">
-                <el-input v-model="education.school" placeholder="请输入毕业院校"></el-input>
-              </el-form-item>
-            </el-form>
+        <el-tab-pane
+          label="教育情况"
+          name="education"
+        >
+          <el-form
+            ref="educationForm"
+            label-width="100px"
+            :model="education"
+            :rules="educationRules"
+          >
+            <el-form-item
+              label="学历"
+              prop="degree"
+            >
+              <el-select
+                v-model="education.degree"
+                placeholder="请选择学历"
+              >
+                <!-- 学历选项 -->
+                <el-option
+                  label="小学"
+                  value="小学"
+                ></el-option>
+                <el-option
+                  label="初中"
+                  value="初中"
+                ></el-option>
+                <el-option
+                  label="高中"
+                  value="高中"
+                ></el-option>
+                <el-option
+                  label="大专"
+                  value="大专"
+                ></el-option>
+                <el-option
+                  label="本科"
+                  value="本科"
+                ></el-option>
+                <el-option
+                  label="研究生"
+                  value="研究生"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item
+              label="学位"
+              prop="title"
+              v-if="education.degree === '本科' || education.degree === '研究生'"
+            >
+              <el-select
+                v-model="education.title"
+                placeholder="请选择学位"
+              >
+                <!-- 学位选项 -->
+                <el-option
+                  label="学士"
+                  value="学士"
+                ></el-option>
+                <el-option
+                  label="硕士"
+                  value="硕士"
+                ></el-option>
+                <el-option
+                  label="博士"
+                  value="博士"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item
+              label="毕业院校"
+              prop="school"
+            >
+              <el-input
+                v-model="education.school"
+                placeholder="请输入毕业院校"
+              ></el-input>
+            </el-form-item>
+          </el-form>
         </el-tab-pane>
 
       </el-tabs>
 
       <!-- 按钮区域 -->
-      <span slot="footer" class="dialog-footer">
+      <span
+        slot="footer"
+        class="dialog-footer"
+      >
         <el-button @click="cancel">取消</el-button>
-        <el-button type="primary" @click="saveForm">保存</el-button>
+        <el-button
+          type="primary"
+          @click="saveForm"
+        >保存</el-button>
       </span>
     </el-dialog>
 
@@ -287,10 +491,11 @@ export default {
       idModified: false
     }
   },
-  created () {
+  async created () {
     this.getCurrentDate()
-    this.info = getInfo()
-    this.getUserInfo()
+    this.info = JSON.parse(getInfo())
+    // console.log(this.info)
+    await this.getUserInfo()
     // console.log(this.user)
     // console.log(this.level)
   },
@@ -337,7 +542,7 @@ export default {
             center: ['50%', '70%'],
             radius: '90%',
             min: 0,
-            max: 1,
+            max: 1000,
             splitNumber: 8,
             axisLine: {
               lineStyle: {
@@ -379,13 +584,13 @@ export default {
               distance: -60,
               rotate: 'tangential',
               formatter: (value) => {
-                if (value === 0.875) {
+                if (value === 875) {
                   return '优秀'
-                } else if (value === 0.625) {
+                } else if (value === 625) {
                   return '良好'
-                } else if (value === 0.375) {
+                } else if (value === 375) {
                   return '一般'
-                } else if (value === 0.125) {
+                } else if (value === 125) {
                   return '很差'
                 }
                 return ''
@@ -404,7 +609,7 @@ export default {
                   this.setUserLevel('优秀')
                 } else if (value >= 500) {
                   this.setUserLevel('良好')
-                } else if (value >= 2500) {
+                } else if (value >= 250) {
                   this.setUserLevel('一般')
                 } else {
                   this.setUserLevel('很差')
@@ -630,11 +835,9 @@ export default {
       ringGaugeChart.setOption(option)
     },
 
-    getUserInfo () {
-      const info = JSON.parse(this.info)
-
-      getUser(
-        info,
+    async getUserInfo () {
+      await getUser(
+        this.info,
         (res) => {
           this.user = res.data.user
           this.idcard = res.data.idcard
@@ -646,6 +849,7 @@ export default {
           // console.log(this.education)
 
           this.initRingGaugeChart()
+          localStorage.setItem('Score', JSON.stringify(this.user.score)) // 存储用户信息到浏览器
         },
         (res) => {
           this.$message.error(res.msg)
@@ -664,6 +868,7 @@ export default {
         return
       }
       if (this.isModified) {
+        localStorage.setItem('Score', JSON.stringify(this.user.score)) // 存储用户信息到浏览器
         this.$confirm('确定修改吗？(多次反复修改可能影响信用分)', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -847,30 +1052,30 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import '@/common/style.css';
+@import "@/common/style.css";
 
-  .personalInfo {
-    margin: 100px;
-    width: 100%;
-  }
+.personalInfo {
+  margin: 100px;
+  width: 100%;
+}
 
-  .ringGauge-container {
-    width: 100%;
-    height: 500px;
-  }
+.ringGauge-container {
+  width: 100%;
+  height: 500px;
+}
 
-  .image {
-    display: flex;
-    flex-direction: row;
-  }
+.image {
+  display: flex;
+  flex-direction: row;
+}
 
-  .uploaded-image-container {
-    display: flex;
-    flex-direction: row;
-    margin: 20px;
-  }
+.uploaded-image-container {
+  display: flex;
+  flex-direction: row;
+  margin: 20px;
+}
 
-  .re-upload {
-    margin: 20px auto;
-  }
+.re-upload {
+  margin: 20px auto;
+}
 </style>

@@ -134,3 +134,35 @@ export const updateEmployment = async (employment, successCallback, errorCallbac
     errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
   }
 }
+
+export const getRecentData = async (user, successCallback, errorCallback) => {
+  try {
+    const response = await request.get('/variation/getVariation', { params: { idNo: user.user.idNo } })
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}
+
+export const getVariation = async (user, successCallback, errorCallback) => {
+  try {
+    const response = await request.get('/variation/getVariation', { params: { idNo: user.idNo } })
+
+    if (response.code === 200) {
+      successCallback(response)
+    } else {
+      errorCallback(response)
+    }
+  } catch (error) {
+    // 处理异常
+    console.error('-_-!啊哦，出现意外:', error)
+    errorCallback({ code: 500, msg: '-_-!啊哦，出现意外' })
+  }
+}

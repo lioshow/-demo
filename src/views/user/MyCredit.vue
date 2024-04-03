@@ -1,10 +1,18 @@
 <template>
   <el-container class="container">
     <el-header class="header">
-      <img src="@/assets/logo.jpg" alt="" class="logo">
+      <img
+        src="@/assets/logo.jpg"
+        alt=""
+        class="logo"
+      >
       <div class="title">缅北征信中心</div>
       <div class="subtitle1">
-        <el-button style="color: #fff;" type="text" @click="goHome">首页</el-button>
+        <el-button
+          style="color: #fff;"
+          type="text"
+          @click="goHome"
+        >首页</el-button>
       </div>
       <div class="subtitle2">
         <el-button type="text">我的信用</el-button>
@@ -12,16 +20,40 @@
     </el-header>
 
     <el-container style="background-color: #f0f0f0;">
-      <el-aside width="500px" class="left">
+      <el-aside
+        width="500px"
+        class="left"
+      >
         <el-row>
-          <el-col :span="24" class="left-col">
-            <el-avatar v-if="!isUserLoggedIn" :size="80" style="font-size: 60px;" icon="el-icon-user-solid"></el-avatar>
-            <p v-else>欢迎您，刘肖</p>
-            <el-button v-if="!isUserLoggedIn" class="left-button" type="primary" @click="dialogVisible = true">登录</el-button>
-            <el-button v-else class="left-button" type="primary" @click="logout">退出</el-button>
+          <el-col
+            :span="24"
+            class="left-col"
+          >
+            <el-avatar
+              v-if="!isUserLoggedIn"
+              :size="80"
+              style="font-size: 60px;"
+              icon="el-icon-user-solid"
+            ></el-avatar>
+            <p v-else>欢迎您，{{ user.idcard.name }}</p>
+            <el-button
+              v-if="!isUserLoggedIn"
+              class="left-button"
+              type="primary"
+              @click="login"
+            >登录</el-button>
+            <el-button
+              v-else
+              class="left-button"
+              type="primary"
+              @click="logout"
+            >退出</el-button>
           </el-col>
           <el-col :span="24">
-            <div ref="radarChart" class="radar-container"></div>
+            <div
+              ref="radarChart"
+              class="radar-container"
+            ></div>
           </el-col>
         </el-row>
       </el-aside>
@@ -30,40 +62,88 @@
       <el-main class="right">
         <el-row style="height: 100%;">
           <el-col :span="24">
-            <el-button v-if="!isUserLoggedIn" type="primary" @click="dialogVisible = true"><i class="el-icon-chat-dot-square"></i>请登录查看信用详情</el-button>
-            <div v-else style="display: flex;">
+            <el-button
+              v-if="!isUserLoggedIn"
+              type="primary"
+              @click="login"
+            ><i class="el-icon-chat-dot-square"></i>请登录查看信用详情</el-button>
+            <div
+              v-else
+              style="display: flex;"
+            >
               <div>
                 <i class="el-icon-chat-dot-square"></i>
-                当前信用分为：910，信用水平：
-                <span :style="{ color: getFontColor('优秀') }">优秀</span>
+                当前信用分为：{{ user.user.score }}，信用水平：
+                <span
+                  :style="{ color: getFontColor(getUserLevel) }">{{ getUserLevel }}</span>
               </div>
-              <el-button style="margin-left: 50px;" type="success">生成信用报告</el-button>
+              <el-button
+                style="margin-left: 50px;"
+                type="success"
+                @click="gotoReport"
+              >生成信用报告</el-button>
             </div>
           </el-col>
           <el-col :span="24">
             <!-- 折线图容器 -->
-            <div ref="lineChart" class="line-container"></div>
+            <div
+              ref="lineChart"
+              class="line-container"
+            ></div>
           </el-col>
         </el-row>
       </el-main>
     </el-container>
 
     <!-- 登录弹框 -->
-    <el-dialog style="text-align: center;" title="欢迎使用缅北征信平台" :visible.sync="dialogVisible" width="400px">
+    <el-dialog
+      style="text-align: center;"
+      title="欢迎使用缅北征信平台"
+      :visible.sync="dialogVisible"
+      width="400px"
+    >
       <!-- 表单 -->
-      <el-form :model="loginForm" ref="loginForm" :rules="loginRules">
-        <el-form-item label="手机号" prop="phone">
-          <el-input v-model="loginForm.phone" prefix-icon="el-icon-mobile" autocomplete="off"></el-input>
+      <el-form
+        :model="loginForm"
+        ref="loginForm"
+        :rules="loginRules"
+      >
+        <el-form-item
+          label="手机号"
+          prop="phone"
+        >
+          <el-input
+            v-model="loginForm.phone"
+            prefix-icon="el-icon-mobile"
+            autocomplete="off"
+          ></el-input>
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input type="password" v-model="loginForm.password" prefix-icon="el-icon-lock" autocomplete="off" show-password></el-input>
+        <el-form-item
+          label="密码"
+          prop="password"
+        >
+          <el-input
+            type="password"
+            v-model="loginForm.password"
+            prefix-icon="el-icon-lock"
+            autocomplete="off"
+            show-password
+          ></el-input>
         </el-form-item>
         <!-- 验证码 -->
         <el-form-item prop="validCode">
           <div style="display: flex;align-items: center;">
-            <el-input v-model="loginForm.validCode" prefix-icon="el-icon-circle-check" style="flex: 1" placeholder="请输入验证码"></el-input>
+            <el-input
+              v-model="loginForm.validCode"
+              prefix-icon="el-icon-circle-check"
+              style="flex: 1"
+              placeholder="请输入验证码"
+            ></el-input>
             <div style="flex: 1;margin-left: 20px;">
-              <valid-code @input="getCode" ref="validCode"/>
+              <valid-code
+                @input="getCode"
+                ref="validCode"
+              />
             </div>
           </div>
         </el-form-item>
@@ -71,29 +151,54 @@
 
       <!-- 忘记密码和没有账号 -->
       <div align="left">
-        <el-button style="font-size: 10px;" type="text" @click="forgetPassword">忘记密码?</el-button>
-        <el-button style="font-size: 10px;" type="text" @click="noAccount">没有账号?</el-button>
+        <el-button
+          style="font-size: 10px;"
+          type="text"
+          @click="forgetPassword"
+        >忘记密码?</el-button>
+        <el-button
+          style="font-size: 10px;"
+          type="text"
+          @click="noAccount"
+        >没有账号?</el-button>
       </div>
 
-        <!-- 登录按钮 -->
-      <el-button :loading="loading" type="primary" @click="login">登录</el-button>
+      <!-- 登录按钮 -->
+      <el-button
+        :loading="loading"
+        type="primary"
+        @click="login"
+      >登录</el-button>
 
       <!-- 登录协议 -->
       <div class="login-agreement">
         注意：登录即代表您同意使用我们的服务，且自愿服从相关条例。详细说明请看
-        <el-button style="font-size: 12px;" type="text" @click="goLoginAgreement">《缅北征信服务平台协议》</el-button>
+        <el-button
+          style="font-size: 12px;"
+          type="text"
+          @click="goLoginAgreement"
+        >《缅北征信服务平台协议》</el-button>
       </div>
     </el-dialog>
+
+    <!-- <div v-if="isAssessing" class="load-style"> -->
+    <!-- <el-dialog :visible.sync="assessmentVisible" title="正在为您进行信用评估，请勿离开..." :show-close="false" :close-on-click-modal="false" :modal="true">
+        <el-progress :percentage="progress"></el-progress>
+        <div class="access-button" align="center">
+          <el-button type="success" :disabled="progress==100 ? false : true" @click="goUser">评估完成，进入主页</el-button>
+        </div>
+      </el-dialog> -->
+    <!-- </div> -->
   </el-container>
 </template>
 
 <script>
 import * as echarts from 'echarts'
-import { getMetrics, getUser, loginUser } from '@/api/index.js'
+import { getMetrics, getUser, getRecentData } from '@/api/index.js'
 import ValidCode from '@/components/ValidCode.vue'
 
 import { mapState, mapMutations } from 'vuex'
-import { getInfo, removeInfo, removeLevel, removeState } from '@/utils/storage'
+import { getInfo, getLevel, removeInfo, removeLevel, removeState } from '@/utils/storage'
 
 export default {
   components: {
@@ -102,7 +207,11 @@ export default {
   computed: {
     ...mapState('userLoggedState', {
       isUserLoggedIn: state => state.isUserLoggedIn
-    })
+    }),
+
+    getUserLevel () {
+      return JSON.parse(getLevel()).trim()
+    }
   },
   data () {
     // 验证码校验
@@ -117,8 +226,17 @@ export default {
     }
     return {
       info: '',
-      user: '',
+      user: {
+        user: {
+          idNo: '',
+          score: ''
+        },
+        idcard: {
+          name: ''
+        }
+      },
       radarData: [],
+      lineData: [],
       recentDates: [],
       dialogVisible: false,
       code: '', // 组件传过来的验证码
@@ -132,10 +250,14 @@ export default {
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
         validCode: [{ validator: validateCode, trigger: 'blur' }]
       },
-      loading: false
+      loading: false,
+      assessmentVisible: false,
+      progress: 0,
+      isAssessing: true
     }
   },
   created () {
+    // this.creditAssessment()
     this.getRecentDates()
     if (this.isUserLoggedIn) {
       this.info = getInfo()
@@ -144,6 +266,7 @@ export default {
   },
   mounted () {
     // 在组件挂载后，初始化雷达图和折线图
+    // console.log(this.isUserLoggedIn)
     if (!this.isUserLoggedIn) {
       this.initRadarChart()
       this.initLineChart()
@@ -159,6 +282,7 @@ export default {
         info,
         (res) => {
           this.user = res.data
+          console.log(this.user)
           getMetrics(
             this.user,
             (res) => {
@@ -182,9 +306,9 @@ export default {
                   delete this.radarData[englishKey]
                 }
               }
-              console.log(this.radarData)
+              // console.log(this.radarData)
               this.initRadarChart()
-              this.initLineChart()
+              this.getRecentData()
             },
             (res) => {
               this.$message.error(res.msg)
@@ -220,7 +344,15 @@ export default {
           //   { name: '用户特质', max: 200 },
           //   { name: '行为特质', max: 200 }
           // ]
-          indicator: Object.keys(this.radarData).map(key => ({ name: key, max: 200 }))
+          indicator: this.isUserLoggedIn
+            ? Object.keys(this.radarData).map(key => ({ name: key, max: 200 }))
+            : [
+              { name: '平台活跃', max: 200 },
+              { name: '账号信息', max: 200 },
+              { name: '履约能力', max: 200 },
+              { name: '用户特质', max: 200 },
+              { name: '行为特质', max: 200 }
+            ]
         },
         series: [
           {
@@ -284,7 +416,7 @@ export default {
         series: [{
           name: '示例数据',
           type: 'line',
-          data: [910, 910, 910, 910, 910, 910, 910]
+          data: this.lineData.reverse()
         }]
       }
       // 使用配置项绘制折线图
@@ -299,6 +431,33 @@ export default {
     goHome () {
       if (this.isUserLoggedIn) this.$router.push({ path: '/user' })
       else this.$router.push({ path: '/' })
+    },
+
+    getRecentData () {
+      getRecentData(
+        this.user,
+        (res) => {
+          console.log(res)
+          for (let i = 0; i < res.data.length; i++) {
+            this.lineData.push(res.data[i].score)
+          }
+          if (this.lineData.length < 15) {
+            let i = this.lineData.length
+            this.lineData.reverse()
+            while (i < 15) {
+              this.lineData.push(this.lineData[this.lineData.length - 1])
+              i++
+            }
+          }
+          this.initLineChart()
+          const varScore = this.lineData[this.lineData.length - 1] - this.lineData[this.lineData.length - 2]
+          window.localStorage.setItem('varScore', JSON.stringify(varScore))
+          console.log(this.lineData)
+        },
+        (res) => {
+          this.$message.error(res.msg)
+        }
+      )
     },
 
     getRecentDates () {
@@ -317,6 +476,10 @@ export default {
       this.$router.push({ path: '/agreement' })
     },
 
+    gotoReport () {
+      this.$router.push({ path: '/report' })
+    },
+
     // 忘记密码
     forgetPassword () {
       this.$router.push({ path: '/reset' })
@@ -329,28 +492,44 @@ export default {
 
     // 登录
     login () {
-      this.$refs.loginForm.validate(async (valid) => {
-        if (valid) {
-          this.loading = true
+      // this.$refs.loginForm.validate(async (valid) => {
+      //   if (valid) {
+      //     this.loading = true
 
-          loginUser(
-            this.loginForm,
-            (res) => {
-              this.loading = false
-              this.$message.success(res.msg)
-              this.$store.commit('user/setUserInfo', res.data)
-              this.setUserLoggedState(true)
-              location.reload()
-            },
-            (res) => {
-              this.loading = false
-              this.$message.error(res.msg)
-              // 刷新验证码
-              this.$refs.validCode.refreshCode()
-            }
-          )
+      //     loginUser(
+      //       this.loginForm,
+      //       (res) => {
+      //         this.loading = false
+      //         this.$message.success(res.msg)
+      //         this.$store.commit('user/setUserInfo', res.data)
+      //         this.setUserLoggedState(true)
+      //         if (res.data.days === 1) {
+      //           this.dialogVisible = false
+      //           this.creditAssessment()
+      //         }
+      //         location.reload()
+      //       },
+      //       (res) => {
+      //         this.loading = false
+      //         this.$message.error(res.msg)
+      //         // 刷新验证码
+      //         this.$refs.validCode.refreshCode()
+      //       }
+      //     )
+      //   }
+      // })
+      this.goHome()
+    },
+
+    creditAssessment () {
+      this.assessmentVisible = true
+      // 模拟加载过程，每100毫秒增加1%的进度
+      const interval = setInterval(() => {
+        this.progress += 1
+        if (this.progress >= 100) {
+          clearInterval(interval)
         }
-      })
+      }, 100)
     },
 
     // 登出
@@ -373,13 +552,13 @@ export default {
 
     getFontColor (level) {
       if (level === '优秀') {
-        return 'green'
+        return '#67C23A'
       } else if (level === '良好') {
-        return 'blue'
+        return '#409EFF'
       } else if (level === '一般') {
-        return 'orange'
+        return '#E6A23C'
       } else {
-        return 'red'
+        return '#F56C6C'
       }
     }
   }
@@ -387,55 +566,71 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import '@/common/style.css';
+@import "@/common/style.css";
 
-  .left {
-    background-color: #fff;
-    border-radius: 30px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-    margin: 30px;
-    padding: 50px; /* 左侧内边距 */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
+.left {
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  margin: 30px;
+  padding: 50px; /* 左侧内边距 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
-  .left-col {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-left: 30px;
-  }
+.left-col {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 30px;
+}
 
-  .left-button {
-    position: relative;
-    right: 190px;
-  }
+.left-button {
+  position: relative;
+  right: 190px;
+}
 
-  .right {
-    background-color: #fff;
-    border-radius: 30px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-    margin: 30px;
-    padding: 50px; /* 右侧内边距 */
-  }
+.right {
+  background-color: #fff;
+  border-radius: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  margin: 30px;
+  padding: 50px; /* 右侧内边距 */
+}
 
-  .radar-container {
-    width: 100%;
-    height: 300px;
-    margin-top: 50px;
-  }
+.radar-container {
+  width: 100%;
+  height: 300px;
+  margin-top: 50px;
+}
 
-  .line-container {
-    width: 100%;
-    height: 400px;
-    margin-top: 50px;
-  }
+.line-container {
+  width: 100%;
+  height: 400px;
+  margin-top: 50px;
+}
 
-  .login-agreement {
-    text-align: left;
-    margin-top: 10px;
-    font-size: 12px;
-    color: #999;
-  }
+.login-agreement {
+  text-align: left;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #999;
+}
+
+.load-style {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  backdrop-filter: blur(4px);
+  z-index: 99;
+}
+
+.access-button {
+  margin: 50px auto;
+  align-items: center;
+}
 </style>
